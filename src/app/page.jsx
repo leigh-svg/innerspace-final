@@ -35,3 +35,15 @@ export default function Home() {
     </main>
   );
 }
+'use client';
+import React from 'react';
+// import EditorialSwiper from '@/components/EditorialSwiper'; // <--- ADD // HERE
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-brand-charcoal flex items-center justify-center">
+      <h1 className="text-brand-bone text-4xl font-serif">Innerspace Initialized</h1>
+      {/* <EditorialSwiper /> */} {/* <--- ADD { /* and * / } HERE */}
+    </main>
+  );
+}
