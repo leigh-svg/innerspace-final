@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   GLOBAL KEYFRAME ANIMATIONS
+   ============================================ */
+
+/* Gold-Leaf Shimmer: diagonal light streak */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+}
+
+/* Aura Pulse: replaces spinner for AI loading states */
+@keyframes aura-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.6; }
+  50%       { transform: scale(1.5); opacity: 0;   }
+}
+@keyframes aura-pulse-inner {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%       { transform: scale(1.15); opacity: 0.7; }
+}
+
+/* Text entrance: used for all display headers */
+@keyframes text-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Stagger fade-up for gallery cards */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@layer base {
+  body {
+    @apply bg-brand-charcoal text-brand-bone font-sans antialiased selection:bg-brand-gold selection:text-brand-charcoal;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight text-brand-bone;
+    animation: text-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@layer components {
+
+  /* ── Glassmorphism ──────────────────────────────── */
+  .glass-card {
+    @apply bg-brand-charcoal-light/40 backdrop-blur-[24px] border shadow-glass rounded-2xl overflow-hidden transition-all duration-500 ease-out;
+    border-image: linear-gradient(to bottom, rgba(245,245,240,0.15), transparent) 1;
+    /* Fallback — use a regular border so Tailwind can handle the rest: */
+    border-color: rgba(245,245,240,0.12);
+  }
+
+  /* Interactive glass cards */
+  .glass-card-interactive {
+    @apply glass-card hover:bg-brand-charcoal-light/60 hover:border-brand-gold/30 hover:-translate-y-1 hover:shadow-brand-gold/5 cursor-pointer;
+  }
+
+  /* Deeper blur for the Pro Consultancy Card */
+  .glass-card-deep {
+    @apply glass-card backdrop-blur-[40px];
+    border-color: rgba(245,245,240,0.2);
+    box-shadow: 0 0 0 1px rgba(245,245,240,0.06) inset,
+                0 24px 64px rgba(0,0,0,0.4);
+  }
+
+  /* ── Buttons ─────────────────────────────────────── */
+  .btn-primary {
+    @apply relative overflow-hidden bg-brand-bone text-brand-charcoal font-sans font-medium px-8 py-4 rounded-full
+           transition-transform duration-300 hover:scale-[1.02] active:scale-95;
+  }
+
+  /* Gold-leaf shimmer streak on hover */
+  .btn-primary::after {
+    content: '';
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  .btn-primary:hover::after {
+    animation: shimmer 0.65s ease-in-out;
+  }
+
+  .btn-accent {
+    @apply bg-brand-gold text-brand-charcoal font-sans font-medium px-8 py-4 rounded-full
+           transition-all duration-300 hover:bg-brand-gold-light
+           hover:shadow-[0_0_20px_rgba(197,168,128,0.3)] active:scale-95;
+  }
+
+  /* ── Aura Loader ────────────────────────────────── */
+  .aura-loader {
+    @apply relative flex items-center justify-center w-24 h-24;
+  }
+  .aura-loader::before {
+    content: '';
+    @apply absolute w-full h-full rounded-full bg-brand-gold/20;
+    animation: aura-pulse 2s ease-in-out infinite;
+  }
+  .aura-loader::after {
+    content: '';
+    @apply absolute w-12 h-12 rounded-full bg-brand-gold/30;
+    animation: aura-pulse-inner 2s ease-in-out infinite;
+  }
+  .aura-loader-dot {
+    @apply relative z-10 w-4 h-4 rounded-full bg-brand-gold shadow-[0_0_16px_rgba(197,168,128,0.8)];
+  }
+
+  /* ── Gallery Stagger ────────────────────────────── */
+  .gallery-card-enter {
+    animation: card-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
