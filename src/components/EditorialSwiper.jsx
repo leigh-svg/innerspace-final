@@ -9,20 +9,23 @@ import { Smartphone, Check } from 'lucide-react';
 const CardStyles = () => (
   <style dangerouslySetInnerHTML={{ __html: `
     .swiper-card-container {
-      width: 320px !important;
-      height: 480px !important;
+      width: 340px !important;  /* Slightly wider for desktop balance */
+      height: 460px !important;
       position: relative !important;
       overflow: hidden !important;
-      border-radius: 24px !important;
-      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5) !important;
+      border-radius: 40px !important; /* Softer, more premium curves */
+      box-shadow: 0 30px 60px -12px rgba(0,0,0,0.7) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      background: #111 !important;
     }
     .swiper-image-fix {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover !important;
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .swiper-card-container:hover .swiper-image-fix {
+      transform: scale(1.05) !important;
     }
   `}} />
 );
