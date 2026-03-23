@@ -76,24 +76,22 @@ const SwipeCard = ({ item, index, activeIndex, handleSwipe }) => {
   const isFront = index === activeIndex;
   
   const x = useMotionValue(0);
-  // Transform x position into rotation (subtle 10deg max)
-  const rotate = useTransform(x, [-300, 300], [-10, 10]);
-  // Transform x into opacity for the overlay UI (Heart/Cross)
-  const opacityRight = useTransform(x, [0, 150], [0, 1]);
-  const opacityLeft = useTransform(x, [0, -150], [0, 1]);
+  const rotate = useTransform(x, [-300, 300], [-15, 15]);
+  const opacityRight = useTransform(x, [50, 150], [0, 1]);
+  const opacityLeft = useTransform(x, [-50, -150], [0, 1]);
 
   const animControls = useAnimation();
 
   const handleDragEnd = async (event, info) => {
-    const threshold = 100;
+    const threshold = 120;
     if (info.offset.x > threshold) {
-      await animControls.start({ x: 500, opacity: 0, transition: { duration: 0.3 } });
+      await animControls.start({ x: 600, opacity: 0, transition: { duration: 0.3 } });
       handleSwipe(item, 'love');
     } else if (info.offset.x < -threshold) {
-      await animControls.start({ x: -500, opacity: 0, transition: { duration: 0.3 } });
+      await animControls.start({ x: -600, opacity: 0, transition: { duration: 0.3 } });
       handleSwipe(item, 'pass');
     } else {
-      animControls.start({ x: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } });
+      animControls.start({ x: 0, transition: { type: 'spring', stiffness: 400, damping: 25 } });
     }
   };
 
@@ -101,57 +99,61 @@ const SwipeCard = ({ item, index, activeIndex, handleSwipe }) => {
 
   return (
     <motion.div
-      className="absolute inset-0 flex items-center justify-center p-4 md:p-12 w-full max-w-2xl mx-auto"
+      className="absolute inset-0 flex items-center justify-center p-6 w-full"
       style={{
         zIndex: MOCK_SWIPER_IMAGES.length - index,
         x: isFront ? x : 0,
         rotate: isFront ? rotate : 0,
-        scale: isFront ? 1 : 1 - (index - activeIndex) * 0.05,
-        y: isFront ? 0 : (index - activeIndex) * 20,
+        scale: isFront ? 1 : 1 - (index - activeIndex) * 0.04,
+        y: isFront ? 0 : (index - activeIndex) * -15, // Stack items slightly upwards
       }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
       animate={animControls}
     >
-      <div className="relative w-full h-[70vh] rounded-[2rem] overflow-hidden shadow-glass border border-brand-bone/10 cursor-grab active:cursor-grabbing bg-brand-charcoal-light">
+      {/* CARD CONTAINER */}
+      <div className="relative w-full max-w-[380px] aspect-[3/4.5] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 cursor-grab active:cursor-grabbing bg-[#1A1A1A]">
         
-        {/* The CV Tagged Image */}
+        {/* The Image - FORCED TO COVER */}
         <img 
           src={item.src} 
           alt="Style reference" 
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
         />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal via-transparent to-brand-charcoal/30 pointer-events-none" />
+        {/* Cinematic Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 pointer-events-none" />
 
-        {/* Swipe Feedback Overlays */}
+        {/* Swipe Feedback UI */}
         {isFront && (
           <>
-            {/* Love Indicator */}
             <motion.div 
               style={{ opacity: opacityRight }}
-              className="absolute top-12 left-12 border-2 border-emerald-400 text-emerald-400 font-sans tracking-[0.3em] font-medium text-4xl px-8 py-3 rounded-xl rotate-[-15deg] pointer-events-none bg-brand-charcoal/40 backdrop-blur-sm"
+              className="absolute top-10 left-10 border-2 border-emerald-400 text-emerald-400 font-sans tracking-[0.2em] font-bold text-2xl px-6 py-2 rounded-full rotate-[-10deg] pointer-events-none backdrop-blur-md bg-emerald-500/10"
             >
               INSPIRED
             </motion.div>
             
-            {/* Pass Indicator */}
             <motion.div 
               style={{ opacity: opacityLeft }}
-              className="absolute top-12 right-12 border-2 border-brand-bone-dark/50 text-brand-bone-dark/80 font-sans tracking-[0.3em] font-medium text-4xl px-8 py-3 rounded-xl rotate-[15deg] pointer-events-none bg-brand-charcoal/40 backdrop-blur-sm"
+              className="absolute top-10 right-10 border-2 border-white/50 text-white/80 font-sans tracking-[0.2em] font-bold text-2xl px-6 py-2 rounded-full rotate-[10deg] pointer-events-none backdrop-blur-md bg-white/10"
             >
               PASS
             </motion.div>
           </>
         )}
 
+        {/* Progress Dots at the bottom of the card */}
+        <div className="absolute bottom-8 w-full flex justify-center space-x-2 px-10">
+            {MOCK_SWIPER_IMAGES.map((_, i) => (
+                <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === index ? 'w-8 bg-white' : 'w-2 bg-white/20'}`} />
+            ))}
+        </div>
       </div>
     </motion.div>
   );
 };
-
 
 // --- The Main DNA Engine Component ---
 
