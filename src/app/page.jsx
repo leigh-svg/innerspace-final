@@ -29,7 +29,12 @@ export default function Home() {
           </button>
         </header>
 
-        {/* The DNA Engine Core */}
+{/* The DNA Engine Core */}
+<div className="flex-1 flex flex-col justify-center items-center w-full max-w-lg mx-auto overflow-hidden">
+    <div className="w-full h-[500px] md:h-[600px] relative"> 
+        <EditorialSwiper />
+    </div>
+</div>        {/* The DNA Engine Core */}
         <div className="flex-1 flex flex-col justify-center w-full">
             <EditorialSwiper />
         </div>
