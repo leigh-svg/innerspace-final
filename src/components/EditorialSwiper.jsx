@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, useAnimation, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { generateWhatsAppConciergeLink } from '@/lib/utils/whatsapp';
@@ -36,27 +36,21 @@ const MOCK_SWIPER_IMAGES = [
   }
 ];
 
-// Reusable Tag Scoring Algorithm
 const calculateDesignDNA = (swipeHistory) => {
   const tagScores = {};
-
   swipeHistory.forEach(({ tags, action }) => {
-    // Weighting: Love = +1, Pass = -1
     const weight = action === 'love' ? 1 : -1;
-    
     tags.forEach(tag => {
       tagScores[tag] = (tagScores[tag] || 0) + weight;
     });
   });
 
-  // Sort and extract top 3 dominant traits (must have positive score)
   const sortedTraits = Object.entries(tagScores)
     .filter(([_, score]) => score > 0)
     .sort((a, b) => b[1] - a[1])
     .map(([tag]) => tag)
     .slice(0, 3);
   
-  // Map top traits to a primary Archetype Note
   let primaryArchetype = 'Eclectic Modern';
   if (sortedTraits.includes('japandi') || sortedTraits.includes('warm_minimalist')) {
     primaryArchetype = 'Warm Minimalist / Japandi';
@@ -69,17 +63,14 @@ const calculateDesignDNA = (swipeHistory) => {
   return { traits: sortedTraits, archetype: primaryArchetype };
 };
 
-
 // --- Framer Motion Swiper Card Component ---
 
 const SwipeCard = ({ item, index, activeIndex, handleSwipe }) => {
   const isFront = index === activeIndex;
-  
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 300], [-15, 15]);
   const opacityRight = useTransform(x, [50, 150], [0, 1]);
   const opacityLeft = useTransform(x, [-50, -150], [0, 1]);
-
   const animControls = useAnimation();
 
   const handleDragEnd = async (event, info) => {
@@ -99,63 +90,49 @@ const SwipeCard = ({ item, index, activeIndex, handleSwipe }) => {
 
   return (
     <motion.div
-      className="absolute inset-0 flex items-center justify-center p-6 w-full"
+      className="absolute inset-0 flex items-center justify-center p-4 w-full h-full pointer-events-none"
       style={{
         zIndex: MOCK_SWIPER_IMAGES.length - index,
         x: isFront ? x : 0,
         rotate: isFront ? rotate : 0,
         scale: isFront ? 1 : 1 - (index - activeIndex) * 0.04,
-        y: isFront ? 0 : (index - activeIndex) * -15, // Stack items slightly upwards
+        y: isFront ? 0 : (index - activeIndex) * -10,
       }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
       animate={animControls}
     >
-      {/* CARD CONTAINER */}
-      <div className="relative w-full max-w-[380px] aspect-[3/4.5] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 cursor-grab active:cursor-grabbing bg-[#1A1A1A]">
-        
-        {/* The Image - FORCED TO COVER */}
+      <div className="pointer-events-auto relative w-full max-w-[340px] aspect-[3/4.5] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-[#1A1A1A]">
         <img 
           src={item.src} 
           alt="Style reference" 
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
         />
-
-        {/* Cinematic Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 pointer-events-none" />
 
-        {/* Swipe Feedback UI */}
         {isFront && (
           <>
             <motion.div 
               style={{ opacity: opacityRight }}
-              className="absolute top-10 left-10 border-2 border-emerald-400 text-emerald-400 font-sans tracking-[0.2em] font-bold text-2xl px-6 py-2 rounded-full rotate-[-10deg] pointer-events-none backdrop-blur-md bg-emerald-500/10"
+              className="absolute top-8 left-8 border-2 border-emerald-400 text-emerald-400 font-sans tracking-widest font-bold text-xl px-4 py-1 rounded-full rotate-[-10deg] bg-emerald-500/10 backdrop-blur-md"
             >
               INSPIRED
             </motion.div>
-            
             <motion.div 
               style={{ opacity: opacityLeft }}
-              className="absolute top-10 right-10 border-2 border-white/50 text-white/80 font-sans tracking-[0.2em] font-bold text-2xl px-6 py-2 rounded-full rotate-[10deg] pointer-events-none backdrop-blur-md bg-white/10"
+              className="absolute top-8 right-8 border-2 border-white/50 text-white/80 font-sans tracking-widest font-bold text-xl px-4 py-1 rounded-full rotate-[10deg] bg-white/10 backdrop-blur-md"
             >
               PASS
             </motion.div>
           </>
         )}
-
-        {/* Progress Dots at the bottom of the card */}
-        <div className="absolute bottom-8 w-full flex justify-center space-x-2 px-10">
-            {MOCK_SWIPER_IMAGES.map((_, i) => (
-                <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === index ? 'w-8 bg-white' : 'w-2 bg-white/20'}`} />
-            ))}
-        </div>
       </div>
     </motion.div>
   );
 };
 
-// --- The Main DNA Engine Component ---
+// --- Main DNA Engine ---
 
 export default function EditorialSwiper() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -164,12 +141,9 @@ export default function EditorialSwiper() {
   const [finalDNA, setFinalDNA] = useState(null);
 
   const handleSwipe = (item, action) => {
-    // Record the tags associated with the action
     const newHistory = [...swipeHistory, { tags: item.tags, action }];
     setSwipeHistory(newHistory);
-
     if (activeIndex + 1 >= MOCK_SWIPER_IMAGES.length) {
-      // Swiper exhausted, trigger Reveal Phase
       triggerDNAReveal(newHistory);
     } else {
       setActiveIndex(prev => prev + 1);
@@ -178,72 +152,52 @@ export default function EditorialSwiper() {
 
   const triggerDNAReveal = (history) => {
     setIsRevealing(true);
-    
-    // Simulate AI Processing time for UX pacing
     setTimeout(() => {
       const computedDNA = calculateDesignDNA(history);
       setFinalDNA(computedDNA);
-      saveDNAtoSupabase(computedDNA); // Mock DB Call
     }, 2500); 
   };
 
-  const saveDNAtoSupabase = async (dna) => {
-    console.log('--- SUPABASE SYNC ---');
-    console.log('UPDATE profiles SET style_dna = $1 WHERE user_id = auth.uid()');
-    console.log('Payload:', JSON.stringify(dna));
-    // Implementation would use: await supabase.from('profiles').update({ style_dna: dna }).eq('user_id', user.id);
-  };
-
-  if (finalDNA) {
-    return <DNAReveal summary={finalDNA} />;
-  }
-
-  if (isRevealing) {
-    return <LoadingDNA />;
-  }
+  if (finalDNA) return <DNAReveal summary={finalDNA} />;
+  if (isRevealing) return <LoadingDNA />;
 
   return (
-    <div className="w-full h-[80vh] min-h-[600px] relative bg-brand-charcoal overflow-hidden rounded-3xl pt-12">
-      {/* Header Context */}
-      <div className="absolute top-8 w-full text-center z-50">
-        <h2 className="font-serif text-3xl text-brand-bone mb-1">Style Calibration</h2>
-        <p className="font-sans text-xs tracking-widest uppercase text-brand-bone-dark">
-          {activeIndex + 1} / {MOCK_SWIPER_IMAGES.length}
+    <div className="w-full max-w-md mx-auto h-[550px] relative flex flex-col items-center">
+      <div className="text-center mb-8 z-50">
+        <h2 className="font-serif text-2xl text-[#F5F5F0] mb-1 italic tracking-wide">Style Calibration</h2>
+        <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[#F5F5F0]/40">
+          Selection {activeIndex + 1} of {MOCK_SWIPER_IMAGES.length}
         </p>
       </div>
 
-      {/* The Stack */}
-      <div className="relative w-full h-full flex justify-center mt-12">
-        {MOCK_SWIPER_IMAGES.map((item, index) => (
-          <SwipeCard 
-            key={item.id} 
-            item={item} 
-            index={index} 
-            activeIndex={activeIndex} 
-            handleSwipe={handleSwipe} 
-          />
-        ))}
+      <div className="relative w-full flex-1">
+        <AnimatePresence>
+          {MOCK_SWIPER_IMAGES.map((item, index) => (
+            <SwipeCard 
+              key={item.id} 
+              item={item} 
+              index={index} 
+              activeIndex={activeIndex} 
+              handleSwipe={handleSwipe} 
+            />
+          ))}
+        </AnimatePresence>
       </div>
 
-      {/* Helper Footer */}
-      <div className="absolute bottom-12 w-full text-center font-sans tracking-widest text-xs uppercase text-brand-bone/50 z-50">
+      <div className="mt-8 text-center font-sans tracking-[0.4em] text-[9px] uppercase text-[#F5F5F0]/20">
         Swipe Right to Love • Left to Pass
       </div>
     </div>
   );
 }
 
-
-// --- Auxiliary Components (Loading & Summary) ---
+// --- Auxiliary Components ---
 
 const LoadingDNA = () => (
-  <div className="w-full h-[80vh] flex flex-col items-center justify-center bg-brand-charcoal text-brand-bone rounded-3xl border border-brand-bone/10 backdrop-blur-xl">
-    {/* Aura Loader — replaces old spinner */}
-    <div className="aura-loader mb-10">
-      <div className="aura-loader-dot" />
-    </div>
-    <h3 className="font-serif text-2xl tracking-wide">Synthesizing Archetype</h3>
-    <p className="font-sans mt-4 text-brand-bone-dark/50 tracking-[0.2em] text-xs uppercase animate-pulse">
+  <div className="w-full max-w-md mx-auto h-[500px] flex flex-col items-center justify-center bg-[#1A1A1A]/50 rounded-[2.5rem] border border-white/5 backdrop-blur-xl">
+    <div className="w-12 h-12 border-2 border-[#F5F5F0]/10 border-t-[#F5F5F0] rounded-full animate-spin mb-6" />
+    <h3 className="font-serif text-xl text-[#F5F5F0]">Synthesizing Archetype</h3>
+    <p className="font-sans mt-3 text-[#F5F5F0]/30 tracking-[0.2em] text-[10px] uppercase animate-pulse">
       Extracting Computer Vision Vectors...
     </p>
   </div>
@@ -253,7 +207,6 @@ const DNAReveal = ({ summary }) => {
   const router = useRouter();
 
   const handleProceed = () => {
-    // Navigate to the dynamic project dashboard, passing the archetype as a URL param for hydration demonstration
     const encodedArchetype = encodeURIComponent(summary.archetype);
     router.push(`/project/new_scan_id_x829?dna=${encodedArchetype}`);
   };
@@ -265,89 +218,36 @@ const DNAReveal = ({ summary }) => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className="w-full h-full min-h-[80vh] flex flex-col items-center justify-center bg-transparent text-brand-bone p-4 md:p-12 relative overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full max-w-2xl mx-auto bg-[#1A1A1A]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center"
     >
-      {/* Heavy Blur Background Layer */}
-      <div className="absolute inset-0 bg-brand-charcoal/40 backdrop-blur-3xl -z-10" />
-
-      {/* Centered Handoff Card */}
-      <div className="relative w-full max-w-2xl bg-brand-charcoal-light/50 backdrop-blur-2xl border border-brand-gold/10 rounded-[2.5rem] p-8 md:p-16 text-center shadow-premium overflow-hidden">
-        
-        {/* Soft Ambient Glow Behind Card Content */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-gold/5 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col items-center">
-            
-            {/* Success Checkmark Animation */}
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
-              className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mb-6"
-            >
-              <Check className="text-emerald-400 w-8 h-8" />
-            </motion.div>
-
-            <span className="font-sans text-xs uppercase tracking-[0.4em] text-brand-gold mb-4 block">
-              Calibration Complete
-            </span>
-            
-            <h2 className="font-serif text-5xl md:text-6xl mb-6 leading-tight drop-shadow-md">
-              {summary.archetype}
-            </h2>
-
-            <div className="flex flex-wrap justify-center space-x-3 mb-12">
-              {summary.traits.map(trait => (
-                <span key={trait} className="px-4 py-1.5 border border-brand-bone/10 rounded-full font-sans text-xs tracking-widest text-brand-bone-dark uppercase bg-brand-charcoal/30">
-                  #{trait.replace('_', ' ')}
-                </span>
-              ))}
-            </div>
-
-            {/* High-End CTA */}
-            <button 
-              onClick={handleWhatsAppTrigger}
-              className="w-full md:max-w-md py-5 bg-brand-bone hover:bg-white text-brand-charcoal font-sans flex items-center justify-center space-x-3 rounded-full transition-all group shadow-[0_0_20px_rgba(245,245,240,0.1)] hover:shadow-[0_0_30px_rgba(245,245,240,0.2)]"
-            >
-                <Smartphone className="w-5 h-5 text-brand-charcoal" />
-                <span className="font-medium tracking-wide">Begin Room Scan via WhatsApp</span>
-                <span className="ml-2 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-1">→</span>
-            </button>
-
-            {/* Minimalist 3-Step Icon Row */}
-            <div className="w-full grid grid-cols-3 gap-4 mt-12 pt-12 border-t border-brand-bone/10">
-                <div className="flex flex-col items-center text-center space-y-3">
-                   <div className="w-10 h-10 rounded-full bg-brand-charcoal flex items-center justify-center border border-brand-bone/5">
-                      <LinkIcon className="w-4 h-4 text-brand-bone-dark" />
-                   </div>
-                   <p className="font-sans text-[10px] uppercase tracking-widest text-brand-bone-dark">1. Receive Link</p>
-                </div>
-                <div className="flex flex-col items-center text-center space-y-3">
-                   <div className="w-10 h-10 rounded-full bg-brand-charcoal flex items-center justify-center border border-brand-bone/5">
-                      <Smartphone className="w-4 h-4 text-brand-bone-dark" />
-                   </div>
-                   <p className="font-sans text-[10px] uppercase tracking-widest text-brand-bone-dark">2. Walk Through</p>
-                </div>
-                <div className="flex flex-col items-center text-center space-y-3">
-                   <div className="w-10 h-10 rounded-full bg-brand-charcoal flex items-center justify-center border border-brand-bone/5">
-                      <Hexagon className="w-4 h-4 text-brand-bone-dark" />
-                   </div>
-                   <p className="font-sans text-[10px] uppercase tracking-widest text-brand-bone-dark">3. View Design</p>
-                </div>
-            </div>
-
-            {/* Demo Skip Link */}
-            <button 
-                onClick={handleProceed}
-                className="mt-8 text-[10px] uppercase tracking-widest text-brand-bone-dark/50 hover:text-brand-bone transition-colors"
-            >
-                Skip straight to Dashboard Demo
-            </button>
-
+      <div className="flex flex-col items-center">
+        <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mb-6">
+          <Check className="text-emerald-400 w-6 h-6" />
         </div>
+        <span className="font-sans text-[10px] uppercase tracking-[0.4em] text-emerald-400/80 mb-4">Calibration Complete</span>
+        <h2 className="font-serif text-4xl md:text-5xl text-[#F5F5F0] mb-6">{summary.archetype}</h2>
+        
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {summary.traits.map(trait => (
+            <span key={trait} className="px-3 py-1 border border-white/10 rounded-full font-sans text-[9px] tracking-widest text-[#F5F5F0]/60 uppercase bg-white/5">
+              #{trait.replace('_', ' ')}
+            </span>
+          ))}
+        </div>
+
+        <button 
+          onClick={handleWhatsAppTrigger}
+          className="w-full py-4 bg-[#F5F5F0] text-black font-sans text-xs uppercase tracking-widest flex items-center justify-center space-x-3 rounded-full hover:bg-white transition-all shadow-xl"
+        >
+          <Smartphone className="w-4 h-4" />
+          <span>Begin Room Scan via WhatsApp</span>
+        </button>
+
+        <button onClick={handleProceed} className="mt-8 text-[9px] uppercase tracking-[0.3em] text-[#F5F5F0]/30 hover:text-[#F5F5F0] transition-colors">
+          Skip to Dashboard Demo
+        </button>
       </div>
     </motion.div>
   );
